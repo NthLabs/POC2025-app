@@ -10,7 +10,7 @@ st.divider()
 
 
 llm = ChatNVIDIA(
-    base_url="http://10.106.14.20:8021/v1",
+    base_url="http://10.101.14.11:8021/v1",
     api_key="FAKE",
     model="meta/llama-3.1-8b-instruct",
     temperature=0.9)
@@ -35,7 +35,7 @@ def generate_response(userInput):
 
 with st.form('my_form'):
     systemPrompt = st.text_area('System Prompt:',
-                                'Please provide three alternate examples of the the following text',
+                                'Please provide three alternate examples of the following text',
                                 height = 150)
     userInput = st.text_area('Enter text:', 
                         placeholder = 'Type or paste your text here',

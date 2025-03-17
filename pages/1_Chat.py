@@ -10,7 +10,7 @@ st.divider()
 chatBox = st.container(height=750)
 
 llm = ChatNVIDIA(
-    base_url="http://10.106.14.20:8021/v1",
+    base_url="http://10.101.14.11:8021/v1",
     api_key="FAKE",
     model="meta/llama-3.1-8b-instruct",
     temperature=0.9)
