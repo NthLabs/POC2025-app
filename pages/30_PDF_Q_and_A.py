@@ -8,7 +8,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-import os
+import os, os.path
 
 st.set_page_config(
     page_title = "PDF Q&A")
@@ -125,7 +125,11 @@ if uploaded_files:
 
 # Session State
 if "vectorStore" not in st.session_state:
-        st.session_state.vectorStore = get_vectorstore()
+        if len(os.listdir(myDocs)) >= 1:
+            st.session_state.vectorStore = get_vectorstore()
+        else:
+            st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
+            
   
 if "messages" not in st.session_state:
     st.session_state.messages = []
