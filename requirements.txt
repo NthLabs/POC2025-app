@@ -1,0 +1,6 @@
+faiss-cpu
+langchain-community
+langchain-nvidia-ai-endpoints
+pip-chill
+pypdf
+streamlit
