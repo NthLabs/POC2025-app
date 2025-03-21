@@ -3,6 +3,7 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
+from poc_env import *
 
 
 st.set_page_config(
@@ -12,9 +13,9 @@ st.divider()
 chatBox = st.container(height=600)
 
 llm = ChatNVIDIA(
-    base_url="http://10.101.14.11:8021/v1",
+    base_url=f"http://{llm1Addr}/v1",
     api_key="FAKE",
-    model="meta/llama-3.1-8b-instruct",
+    model=llm1Model,
     temperature=0.9)
 
 

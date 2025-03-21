@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
+from poc_env import *
 
 st.set_page_config(
     page_title = "PDF Q&A")
@@ -20,15 +21,15 @@ myDocs = "./data"
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
-    base_url="http://10.101.14.11:8021/v1",
+    base_url=f"http://{llm1Addr}/v1",
     api_key="FAKE",
-    model="meta/llama-3.1-8b-instruct",
+    model=llm1Model,
     temperature=0.9)
 
 embedding = NVIDIAEmbeddings(
-    base_url="http://10.101.14.11:8031/v1",
+    base_url=f"http://{embedAddr}/v1",
     api_key="FAKE",
-    model="nvidia/nv-embedqa-e5-v5",
+    model=embedModel,
     )
 
 #-------------------------------------------------------------
