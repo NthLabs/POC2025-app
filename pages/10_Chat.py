@@ -26,7 +26,7 @@ def no_rag(userInput):
     stuffDocumentsChain = create_stuff_documents_chain(llm,prompt)
 
     response = stuffDocumentsChain.invoke({
-        "chatHistory": st.session_state.chatMessages,
+        "chatHistory": st.session_state.chatMessages3,
         "userInput": userInput,
         "context": "",
         }) #.content
@@ -36,11 +36,11 @@ def no_rag(userInput):
 def generate_response(userInput):
     with chatBox.chat_message('human'):
         st.markdown(userInput)
-    st.session_state.chatMessages.append({"role": "human", "content": userInput})
+    st.session_state.chatMessages3.append({"role": "human", "content": userInput})
     with chatBox.chat_message('assistant'):
         response = no_rag(userInput)
         st.write(response)
-    st.session_state.chatMessages.append({"role": "assistant", "content": response})
+    st.session_state.chatMessages3.append({"role": "assistant", "content": response})
 
 
 
@@ -48,13 +48,13 @@ def generate_response(userInput):
 
 # Session State
 if "chatMessages" not in st.session_state:
-    st.session_state.chatMessages = []
+    st.session_state.chatMessages3 = []
 
 
 
 
 # Conversation
-for message in st.session_state.chatMessages:
+for message in st.session_state.chatMessages3:
     with chatBox.chat_message(message["role"]):
         st.markdown(message["content"])
 # Display new Q&A    
@@ -65,6 +65,6 @@ if userInput != None and userInput != "":
 
 # Sidebar
 if st.sidebar.button("Clear Chat History"):
-    st.session_state.chatMessages = []
+    st.session_state.chatMessages3 = []
     st.rerun()
 

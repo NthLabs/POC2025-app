@@ -46,6 +46,8 @@ embedding = NVIDIAEmbeddings(
 
 
 def create_vectorstore():
+    # remove existing vectorstore
+    ###os.system(f"rm -rf {vsPath}")
     loader = PyPDFDirectoryLoader(myDocs)
     documents = loader.load()
 
@@ -97,7 +99,7 @@ def get_conversational_rag_chain(retrieverChain):
     return create_retrieval_chain(retrieverChain, stuffDocumentsChain)
     
 def get_response(userInput):
-    retriever_chain = get_context_retriever_chain(st.session_state.vectorStore)
+    retriever_chain = get_context_retriever_chain(st.session_state.vectorStoreChroma1)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
         "chat_history": st.session_state.messages,
@@ -120,6 +122,15 @@ def generate_response(userInput):
         response = get_response(userInput)
         st.write(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+def clear_knowledgebase():
+    for fileName in os.listdir(myDocs):
+        filePath = os.path.join(myDocs, fileName)
+        try:
+            os.unlink(filePath)
+        except:
+            print("cannot delete")
+
 
 #-------------------------------------------------------------
 # Streamlit Stuff
@@ -147,13 +158,16 @@ if password == adminPass:
             st.success(f"File {uploaded_file.name} uploaded successfully!")
             with open(os.path.join(myDocs, uploaded_file.name), "wb") as f:
                 f.write(uploaded_file.read())
+    
+    st.sidebar.button('Remove All Files', on_click=clear_knowledgebase)
+    st.sidebar.button('Regenerate VectorStore', on_click=create_vectorstore)
 
 
 
 # Session State
 if "vectorStore" not in st.session_state:
     if len(os.listdir(myDocs)) >= 1:
-        st.session_state.vectorStore = get_vectorstore()
+        st.session_state.vectorStoreChroma1 = get_vectorstore()
     else:
         st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             

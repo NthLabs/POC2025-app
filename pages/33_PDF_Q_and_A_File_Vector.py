@@ -95,10 +95,10 @@ def get_conversational_rag_chain(retrieverChain):
     return create_retrieval_chain(retrieverChain, stuffDocumentsChain)
     
 def get_response(userInput):
-    retriever_chain = get_context_retriever_chain(st.session_state.vectorStore)
+    retriever_chain = get_context_retriever_chain(st.session_state.vectorStoreChroma)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
-        "chat_history": st.session_state.messages,
+        "chat_history": st.session_state.messagesPDF2,
         "input": userInput
     })
     #return response
@@ -113,11 +113,11 @@ def get_response(userInput):
 def generate_response(userInput):
     with st.chat_message('human'):
         st.markdown(userInput)
-    st.session_state.messages.append({"role": "human", "content": userInput})
+    st.session_state.messagesPDF2.append({"role": "human", "content": userInput})
     with st.chat_message('assistant'):
         response = get_response(userInput)
         st.write(response)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.session_state.messagesPDF2.append({"role": "assistant", "content": response})
 
 #-------------------------------------------------------------
 # Streamlit Stuff
@@ -143,16 +143,16 @@ if uploaded_files:
 # Session State
 if "vectorStore" not in st.session_state:
     if len(os.listdir(myDocs)) >= 1:
-        st.session_state.vectorStore = get_vectorstore()
+        st.session_state.vectorStoreChroma = get_vectorstore()
     else:
         st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
   
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messagesPDF2 = []
 
 # Conversation
-for message in st.session_state.messages:
+for message in st.session_state.messagesPDF2:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 # Display new Q&A    
