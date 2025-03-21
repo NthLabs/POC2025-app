@@ -1,4 +1,5 @@
 faiss-cpu
+langchain-chroma
 langchain-community
 langchain-nvidia-ai-endpoints
 pip-chill

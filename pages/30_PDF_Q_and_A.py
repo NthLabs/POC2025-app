@@ -17,7 +17,7 @@ st.image("images/NthLabs.png", width=200)
 st.divider()
 
 # My Variables
-myDocs = "./data"
+myDocs = "./data/pdfQA"
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
