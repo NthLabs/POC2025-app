@@ -177,5 +177,8 @@ cython_debug/
 prompt.log
 poc_env.py
 
-catalog/
-data/policy/
+catalog/**
+!catalog/**/
+data/**
+!data/**/
+!.gitkeep
