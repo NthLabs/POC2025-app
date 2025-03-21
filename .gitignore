@@ -176,3 +176,6 @@ cython_debug/
 # NthLabs POC
 prompt.log
 poc_env.py
+
+catalog/
+data/policy/
