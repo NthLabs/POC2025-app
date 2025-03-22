@@ -37,7 +37,7 @@ def generate_response(userInput):
     st.markdown(response)
 
 with st.form('my_form'):
-    userInput = st.text_area('Enter text:', 
+    userInput = st.text_area('Enter text below and get 3 examples of similar text in return:', 
                         placeholder = 'Type or paste your text here',
                         height = 200)
     submitted = st.form_submit_button('Submit')

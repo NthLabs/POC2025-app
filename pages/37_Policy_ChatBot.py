@@ -165,7 +165,7 @@ if password == adminPass:
 
 
 # Session State
-if "vectorStore" not in st.session_state:
+if "vectorStoreChroma1" not in st.session_state:
     if len(os.listdir(myDocs)) >= 1:
         st.session_state.vectorStoreChroma1 = get_vectorstore()
     else:

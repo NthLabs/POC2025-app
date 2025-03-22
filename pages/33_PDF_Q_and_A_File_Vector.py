@@ -141,7 +141,7 @@ if uploaded_files:
             f.write(uploaded_file.read())
 
 # Session State
-if "vectorStore" not in st.session_state:
+if "vectorStoreChroma" not in st.session_state:
     if len(os.listdir(myDocs)) >= 1:
         st.session_state.vectorStoreChroma = get_vectorstore()
     else:
