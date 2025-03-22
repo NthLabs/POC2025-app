@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Chat",)
 st.image("images/NthLabs.png", width=200)
 st.divider()
-chatBox = st.container(height=750)
+chatBox = st.container(height=600)
 
 llm = ChatNVIDIA(
     base_url=f"http://{llm1Addr}/v1",
@@ -47,7 +47,7 @@ def generate_response(userInput):
 
 
 # Session State
-if "chatMessages" not in st.session_state:
+if "chatMessages3" not in st.session_state:
     st.session_state.chatMessages3 = []
 
 

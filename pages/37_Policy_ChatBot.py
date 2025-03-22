@@ -102,7 +102,7 @@ def get_response(userInput):
     retriever_chain = get_context_retriever_chain(st.session_state.vectorStoreChroma1)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
-        "chat_history": st.session_state.messages,
+        "chat_history": st.session_state.messagesPol,
         "input": userInput
     })
     #return response
@@ -117,11 +117,11 @@ def get_response(userInput):
 def generate_response(userInput):
     with st.chat_message('human'):
         st.markdown(userInput)
-    st.session_state.messages.append({"role": "human", "content": userInput})
+    st.session_state.messagesPol.append({"role": "human", "content": userInput})
     with st.chat_message('assistant'):
         response = get_response(userInput)
         st.write(response)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.session_state.messagesPol.append({"role": "assistant", "content": response})
 
 def clear_knowledgebase():
     for fileName in os.listdir(myDocs):
@@ -173,10 +173,10 @@ if "vectorStore" not in st.session_state:
             
 
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messagesPol = []
 
 # Conversation
-for message in st.session_state.messages:
+for message in st.session_state.messagesPol:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 # Display new Q&A    

@@ -132,7 +132,7 @@ if "vectorStore" not in st.session_state:
             st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
   
-if "messages" not in st.session_state:
+if "messagesPDF1" not in st.session_state:
     st.session_state.messagesPDF1 = []
 
 # Conversation
