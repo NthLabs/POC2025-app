@@ -16,8 +16,6 @@ llm = ChatNVIDIA(
     model=llm1Model,
     temperature=0.9)
 
-systemPrompt = 'Please provide three alternate examples of the following text'
-
 def no_rag(userInput):
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{systemPrompt}{context}"),
@@ -37,6 +35,9 @@ def generate_response(userInput):
     st.markdown(response)
 
 with st.form('my_form'):
+    systemPrompt = st.text_area('System Prompt:',
+                                'Please provide three alternate examples of the following text',
+                                height = 150)
     userInput = st.text_area('Enter text:', 
                         placeholder = 'Type or paste your text here',
                         height = 200)
