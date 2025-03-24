@@ -10,18 +10,18 @@ from langchain.chains import create_history_aware_retriever, create_retrieval_ch
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
 from datetime import datetime
+import nthUtility
 from poc_env import *
-
-st.set_page_config(
-    page_title = "PDF Q&A")
-st.image("images/NthLabs.png", width=200)
-st.divider()
 
 
 # My Variables
+webTitle = "Policy ChatBot"
+
 myDocs = "./data/policy"
 vsPath = "./catalog/policy"
 logFile = "./logs/policyPrompt.log"
+
+nthUtility.file_structure(myDocs)
 
 
 # LLMs and Embeddings
@@ -36,14 +36,6 @@ embedding = NVIDIAEmbeddings(
     api_key="FAKE",
     model=embedModel,
     )
-
-if not os.path.isdir("logs"):
-    os.mkdir("logs")
-if not os.path.isdir("data/policy"):
-    os.makedirs("data/policy")
-if not os.path.isdir("catalog/policy"):
-    os.makedirs("catalog/policy")
-
 
 
 #-------------------------------------------------------------
@@ -95,11 +87,11 @@ def regen_vectorstore():
     create_vectorstore()
 
 
-def log_prompt(userInput):
-    id = st.context.headers["Sec-Websocket-Key"]
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    with open(logFile, "a") as promptLog:
-        promptLog.write(f"{timestamp},{id},{userInput}\n")
+# def log_prompt(userInput):
+#     id = st.context.headers["Sec-Websocket-Key"]
+#     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+#     with open(logFile, "a") as promptLog:
+#         promptLog.write(f"{timestamp},{id},{userInput}\n")
 
 
 def get_context_retriever_chain(vectorStore):
@@ -140,7 +132,8 @@ def get_response(userInput):
     return responseString
     
 def generate_response(userInput):
-    log_prompt(userInput)
+    #log_prompt(userInput)
+    nthUtility.log_prompt(userInput, logFile)
     with st.chat_message('human'):
         st.markdown(userInput)
     st.session_state.messagesPol.append({"role": "human", "content": userInput})
@@ -163,6 +156,9 @@ def clear_knowledgebase():
 #-------------------------------------------------------------
 # Streamlit Stuff
 
+st.set_page_config(page_title=webTitle)
+st.image(logo, width=200)
+st.divider()
 
 # Sidebar
 #st.sidebar.image("images/NthU.png", use_container_width=True)

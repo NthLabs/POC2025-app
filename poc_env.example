@@ -12,3 +12,5 @@ embedAddr  = "10.101.14.11:8031"
 
 # Admin Password
 adminPass = "test"
+
+logo = "images/NthLabs.png"
