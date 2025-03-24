@@ -5,6 +5,9 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
 from poc_env import *
 
+# My Variables
+logFile = "./logs/chatPrompt.log"
+
 
 st.set_page_config(
     page_title="Chat",)
@@ -22,7 +25,7 @@ llm = ChatNVIDIA(
 def log_prompt(userInput):
     id = st.context.headers["Sec-Websocket-Key"]
     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    with open("prompt.log", "a") as promptLog:
+    with open(logFile, "a") as promptLog:
         promptLog.write(f"{timestamp},{id},{userInput}\n")
 
 
