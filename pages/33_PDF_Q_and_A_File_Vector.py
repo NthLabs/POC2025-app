@@ -107,7 +107,7 @@ def get_response(userInput):
         responseString += '\n\n'
         responseString += doc.metadata['source']
         responseString += ' Page '
-        responseString += str(doc.metadata['page'])
+        responseString += str(doc.metadata['page'] + 1)
     return responseString
     
 def generate_response(userInput):
