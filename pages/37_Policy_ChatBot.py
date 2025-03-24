@@ -20,7 +20,7 @@ st.divider()
 # My Variables
 myDocs = "./data/policy"
 vsPath = "./catalog/policy"
-adminPass = "test"
+
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
@@ -46,10 +46,10 @@ embedding = NVIDIAEmbeddings(
 
 
 def create_vectorstore():
-    # remove existing vectorstore
-    ###os.system(f"rm -rf {vsPath}")
+    st.sidebar.markdown("Creating Vectorstore")
     loader = PyPDFDirectoryLoader(myDocs)
     documents = loader.load()
+    st.sidebar.markdown(f"{len(documents)} document pages")
 
     # Chunk the data
     text_splitter = RecursiveCharacterTextSplitter(
@@ -58,6 +58,7 @@ def create_vectorstore():
         separators=["\n\n", "\n", ".", ";", ",", " ", ""],
     )
     docChunks = text_splitter.split_documents(documents)
+    st.sidebar.markdown(f"{len(docChunks)} chunks of data")
     
     vectorStore = Chroma.from_documents(
         documents=docChunks,
@@ -66,6 +67,7 @@ def create_vectorstore():
     )
     print("VectorStore Created")
     print(vectorStore)
+    st.session_state.vectorStoreChroma1 = get_vectorstore()
 
 
 def get_vectorstore():
@@ -75,6 +77,11 @@ def get_vectorstore():
         embedding_function=embedding,
         persist_directory=vsPath,)
     return vectorStore
+
+def regen_vectorstore():
+    vectorStore = get_vectorstore()
+    vectorStore.delete_collection()
+    create_vectorstore()
 
 
 def get_context_retriever_chain(vectorStore):
@@ -111,7 +118,7 @@ def get_response(userInput):
         responseString += '\n\n'
         responseString += doc.metadata['source']
         responseString += ' Page '
-        responseString += str(doc.metadata['page'])
+        responseString += str(doc.metadata['page'] + 1)
     return responseString
     
 def generate_response(userInput):
@@ -160,7 +167,7 @@ if password == adminPass:
                 f.write(uploaded_file.read())
     
     st.sidebar.button('Remove All Files', on_click=clear_knowledgebase)
-    st.sidebar.button('Regenerate VectorStore', on_click=create_vectorstore)
+    st.sidebar.button('Regenerate VectorStore', on_click=regen_vectorstore)
 
 
 

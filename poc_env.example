@@ -9,3 +9,6 @@ llm2Addr   = "10.101.14.11:8022"
 
 embedModel = "nvidia/nv-embedqa-e5-v5"
 embedAddr  = "10.101.14.11:8031"
+
+# Admin Password
+adminPass = "test"
