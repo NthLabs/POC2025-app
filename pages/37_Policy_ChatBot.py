@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
+from datetime import datetime
 from poc_env import *
 
 st.set_page_config(
@@ -20,6 +21,7 @@ st.divider()
 # My Variables
 myDocs = "./data/policy"
 vsPath = "./catalog/policy"
+logFile = "./logs/policyPrompt.log"
 
 
 # LLMs and Embeddings
@@ -34,6 +36,15 @@ embedding = NVIDIAEmbeddings(
     api_key="FAKE",
     model=embedModel,
     )
+
+if not os.path.isdir("logs"):
+    os.mkdir("logs")
+if not os.path.isdir("data/policy"):
+    os.makedirs("data/policy")
+if not os.path.isdir("catalog/policy"):
+    os.makedirs("catalog/policy")
+
+
 
 #-------------------------------------------------------------
 # LangChain Workflow:
@@ -65,8 +76,7 @@ def create_vectorstore():
         embedding=embedding,
         persist_directory=vsPath,
     )
-    print("VectorStore Created")
-    print(vectorStore)
+    st.sidebar.markdown("VectorStore Created")
     st.session_state.vectorStoreChroma1 = get_vectorstore()
 
 
@@ -78,10 +88,18 @@ def get_vectorstore():
         persist_directory=vsPath,)
     return vectorStore
 
+
 def regen_vectorstore():
     vectorStore = get_vectorstore()
     vectorStore.delete_collection()
     create_vectorstore()
+
+
+def log_prompt(userInput):
+    id = st.context.headers["Sec-Websocket-Key"]
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    with open(logFile, "a") as promptLog:
+        promptLog.write(f"{timestamp},{id},{userInput}\n")
 
 
 def get_context_retriever_chain(vectorStore):
@@ -122,6 +140,7 @@ def get_response(userInput):
     return responseString
     
 def generate_response(userInput):
+    log_prompt(userInput)
     with st.chat_message('human'):
         st.markdown(userInput)
     st.session_state.messagesPol.append({"role": "human", "content": userInput})
@@ -137,6 +156,8 @@ def clear_knowledgebase():
             os.unlink(filePath)
         except:
             print("cannot delete")
+
+
 
 
 #-------------------------------------------------------------
