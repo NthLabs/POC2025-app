@@ -18,7 +18,7 @@ myDocs = "./data/pdfQA"             # Location for PDFs
 vsPath = "./catalog/pdfQA"          # Location for VectorStore
 logo = "images/NthLabs.png"         # 
 msgHistory = "messagesPDF_V"        # This should be unique for each streamlit page
-vsName = "vsPDF"                    # This should be unique for each Chroma instance
+vsName = "vsPDF_V"                  # This should be unique for each Chroma instance
 
 nthUtility.file_structure(myDocs)   # Setup File structure
 
