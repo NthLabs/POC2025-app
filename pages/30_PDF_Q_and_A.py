@@ -17,6 +17,7 @@ webTitle = "PDF Q&A"                # Title on Browser
 myDocs = "./data/pdfQA"             # Location for PDFs
 logo = "images/NthLabs.png"         # 
 msgHistory = "messagesPDF"          # This should be unique for each page
+vsName = "vsPDF"                    # This should be unique for each Chroma instance
 
 nthUtility.file_structure(myDocs)   # Setup File structure
 
@@ -82,7 +83,7 @@ def get_conversational_rag_chain(retrieverChain):
     return create_retrieval_chain(retrieverChain, stuffDocumentsChain)
     
 def get_response(userInput):
-    retriever_chain = get_context_retriever_chain(st.session_state.vectorStore)
+    retriever_chain = get_context_retriever_chain(getattr(st.session_state, vsName))
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
         "chat_history": getattr(st.session_state, msgHistory),
@@ -132,9 +133,9 @@ if uploaded_files:
             f.write(uploaded_file.read())
 
 # Session State
-if "vectorStore" not in st.session_state:
+if str(vsName) not in st.session_state:
         if len(os.listdir(myDocs)) >= 1:
-            st.session_state.vectorStore = get_vectorstore()
+            setattr(st.session_state, vsName, get_vectorstore())
         else:
             st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
