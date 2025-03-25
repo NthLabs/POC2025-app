@@ -9,18 +9,16 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
-import nthUtility
 from poc_env import *
 
-# My Variables
-webTitle = "PDF Q&A"                # Title on Browser
-myDocs = "./data/pdfQA"             # Location for PDFs
-vsPath = "./catalog/pdfQA"          # Location for VectorStore
-logo = "images/NthLabs.png"         # 
-msgHistory = "messagesPDF_V"        # This should be unique for each streamlit page
-vsName = "vsPDF"                    # This should be unique for each Chroma instance
+st.set_page_config(
+    page_title = "PDF Q&A")
+st.image("images/NthLabs.png", width=200)
+st.divider()
 
-nthUtility.file_structure(myDocs)   # Setup File structure
+# My Variables
+myDocs = "./data/pdfQA"
+vsPath = "./catalog/pdfQA"
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
@@ -35,6 +33,12 @@ embedding = NVIDIAEmbeddings(
     model=embedModel,
     )
 
+if not os.path.isdir(myDocs):
+    os.makedirs(myDocs)
+if not os.path.isdir("catalog"):
+    os.makedirs("catalog")
+
+
 #-------------------------------------------------------------
 # LangChain Workflow:
 # Get VectorStore
@@ -42,8 +46,9 @@ embedding = NVIDIAEmbeddings(
 # build conversational RAG chain (from retriever chain)
 # get response 
 #-------------------------------------------------------------
-
 # LangChain Functions
+
+
 def create_vectorstore():
     loader = PyPDFDirectoryLoader(myDocs)
     documents = loader.load()
@@ -86,7 +91,6 @@ def get_context_retriever_chain(vectorStore):
     retrieverChain = create_history_aware_retriever(llm, retriever, prompt)
     return retrieverChain
 
-
 def get_conversational_rag_chain(retrieverChain): 
     prompt = ChatPromptTemplate.from_messages([
       ("system", "Answer the user's questions based on the below context:\n\n{context}"),
@@ -95,13 +99,12 @@ def get_conversational_rag_chain(retrieverChain):
     ])
     stuffDocumentsChain = create_stuff_documents_chain(llm,prompt)
     return create_retrieval_chain(retrieverChain, stuffDocumentsChain)
-
-
+    
 def get_response(userInput):
-    retriever_chain = get_context_retriever_chain(getattr(st.session_state, vsName))
+    retriever_chain = get_context_retriever_chain(st.session_state.vectorStoreChroma)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
-        "chat_history": getattr(st.session_state, msgHistory),
+        "chat_history": st.session_state.messagesPDF2,
         "input": userInput
     })
     #return response
@@ -112,25 +115,21 @@ def get_response(userInput):
         responseString += ' Page '
         responseString += str(doc.metadata['page'] + 1)
     return responseString
-
-
+    
 def generate_response(userInput):
     with st.chat_message('human'):
         st.markdown(userInput)
-    getattr(st.session_state, msgHistory).append({"role": "human", "content": userInput})
+    st.session_state.messagesPDF2.append({"role": "human", "content": userInput})
     with st.chat_message('assistant'):
         response = get_response(userInput)
         st.write(response)
-    getattr(st.session_state, msgHistory).append({"role": "assistant", "content": response})
+    st.session_state.messagesPDF2.append({"role": "assistant", "content": response})
 
 #-------------------------------------------------------------
 # Streamlit Stuff
 
-st.set_page_config(page_title=webTitle)
-st.image(logo, width=200)
-st.divider()
-
 # Sidebar
+#st.sidebar.image("images/NthU.png", use_container_width=True)
 st.sidebar.subheader("List of Files in Knowledgebase:")
 for file in os.listdir(myDocs):
     st.sidebar.markdown(file)
@@ -148,20 +147,20 @@ if uploaded_files:
             f.write(uploaded_file.read())
 
 # Session State
-if str(vsName) not in st.session_state:
-        if len(os.listdir(myDocs)) >= 1:
-            setattr(st.session_state, vsName, get_vectorstore())
-        else:
-            st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
+if "vectorStoreChroma" not in st.session_state:
+    if len(os.listdir(myDocs)) >= 1:
+        st.session_state.vectorStoreChroma = get_vectorstore()
+    else:
+        st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
-if str(msgHistory) not in st.session_state:
-    setattr(st.session_state, msgHistory, [])
+  
+if "messagesPDF2" not in st.session_state:
+    st.session_state.messagesPDF2 = []
 
 # Conversation
-for message in getattr(st.session_state, msgHistory):
+for message in st.session_state.messagesPDF2:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-    
 # Display new Q&A    
 userInput = st.chat_input("Ask your question...")
 if userInput != None and userInput != "":

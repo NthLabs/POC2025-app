@@ -9,18 +9,21 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
+from datetime import datetime
 import nthUtility
 from poc_env import *
 
-# My Variables
-webTitle = "PDF Q&A"                # Title on Browser
-myDocs = "./data/pdfQA"             # Location for PDFs
-vsPath = "./catalog/pdfQA"          # Location for VectorStore
-logo = "images/NthLabs.png"         # 
-msgHistory = "messagesPDF_V"        # This should be unique for each streamlit page
-vsName = "vsPDF"                    # This should be unique for each Chroma instance
 
-nthUtility.file_structure(myDocs)   # Setup File structure
+# My Variables
+webTitle = "Policy ChatBot"
+
+myDocs = "./data/policy"
+vsPath = "./catalog/policy"
+logFile = "./logs/policyPrompt.log"
+logo = "images/NthLabs.png"
+
+nthUtility.file_structure(myDocs)
+
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
@@ -35,6 +38,7 @@ embedding = NVIDIAEmbeddings(
     model=embedModel,
     )
 
+
 #-------------------------------------------------------------
 # LangChain Workflow:
 # Get VectorStore
@@ -42,11 +46,14 @@ embedding = NVIDIAEmbeddings(
 # build conversational RAG chain (from retriever chain)
 # get response 
 #-------------------------------------------------------------
-
 # LangChain Functions
+
+
 def create_vectorstore():
+    st.sidebar.markdown("Creating Vectorstore")
     loader = PyPDFDirectoryLoader(myDocs)
     documents = loader.load()
+    st.sidebar.markdown(f"{len(documents)} document pages")
 
     # Chunk the data
     text_splitter = RecursiveCharacterTextSplitter(
@@ -55,14 +62,15 @@ def create_vectorstore():
         separators=["\n\n", "\n", ".", ";", ",", " ", ""],
     )
     docChunks = text_splitter.split_documents(documents)
+    st.sidebar.markdown(f"{len(docChunks)} chunks of data")
     
     vectorStore = Chroma.from_documents(
         documents=docChunks,
         embedding=embedding,
         persist_directory=vsPath,
     )
-    print("VectorStore Created")
-    print(vectorStore)
+    st.sidebar.markdown("VectorStore Created")
+    st.session_state.vectorStoreChroma1 = get_vectorstore()
 
 
 def get_vectorstore():
@@ -72,6 +80,19 @@ def get_vectorstore():
         embedding_function=embedding,
         persist_directory=vsPath,)
     return vectorStore
+
+
+def regen_vectorstore():
+    vectorStore = get_vectorstore()
+    vectorStore.delete_collection()
+    create_vectorstore()
+
+
+# def log_prompt(userInput):
+#     id = st.context.headers["Sec-Websocket-Key"]
+#     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+#     with open(logFile, "a") as promptLog:
+#         promptLog.write(f"{timestamp},{id},{userInput}\n")
 
 
 def get_context_retriever_chain(vectorStore):
@@ -86,7 +107,6 @@ def get_context_retriever_chain(vectorStore):
     retrieverChain = create_history_aware_retriever(llm, retriever, prompt)
     return retrieverChain
 
-
 def get_conversational_rag_chain(retrieverChain): 
     prompt = ChatPromptTemplate.from_messages([
       ("system", "Answer the user's questions based on the below context:\n\n{context}"),
@@ -95,13 +115,12 @@ def get_conversational_rag_chain(retrieverChain):
     ])
     stuffDocumentsChain = create_stuff_documents_chain(llm,prompt)
     return create_retrieval_chain(retrieverChain, stuffDocumentsChain)
-
-
+    
 def get_response(userInput):
-    retriever_chain = get_context_retriever_chain(getattr(st.session_state, vsName))
+    retriever_chain = get_context_retriever_chain(st.session_state.vectorStoreChroma1)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
-        "chat_history": getattr(st.session_state, msgHistory),
+        "chat_history": st.session_state.messagesPol,
         "input": userInput
     })
     #return response
@@ -112,16 +131,28 @@ def get_response(userInput):
         responseString += ' Page '
         responseString += str(doc.metadata['page'] + 1)
     return responseString
-
-
+    
 def generate_response(userInput):
+    #log_prompt(userInput)
+    nthUtility.log_prompt(userInput, logFile)
     with st.chat_message('human'):
         st.markdown(userInput)
-    getattr(st.session_state, msgHistory).append({"role": "human", "content": userInput})
+    st.session_state.messagesPol.append({"role": "human", "content": userInput})
     with st.chat_message('assistant'):
         response = get_response(userInput)
         st.write(response)
-    getattr(st.session_state, msgHistory).append({"role": "assistant", "content": response})
+    st.session_state.messagesPol.append({"role": "assistant", "content": response})
+
+def clear_knowledgebase():
+    for fileName in os.listdir(myDocs):
+        filePath = os.path.join(myDocs, fileName)
+        try:
+            os.unlink(filePath)
+        except:
+            print("cannot delete")
+
+
+
 
 #-------------------------------------------------------------
 # Streamlit Stuff
@@ -131,37 +162,48 @@ st.image(logo, width=200)
 st.divider()
 
 # Sidebar
+#st.sidebar.image("images/NthU.png", use_container_width=True)
 st.sidebar.subheader("List of Files in Knowledgebase:")
+st.sidebar.subheader(f"({myDocs})")
 for file in os.listdir(myDocs):
     st.sidebar.markdown(file)
 st.sidebar.divider()
 
-uploaded_files = st.sidebar.file_uploader(
-    "Upload a file to the KnowledgeBase:", 
-    type=['pdf'], 
-    accept_multiple_files=True)
+password = st.sidebar.text_input("Password to manage knowledgebase:", type="password")
+
+if password == adminPass:
+
+    uploaded_files = st.sidebar.file_uploader(
+        "Upload a file to the KnowledgeBase:", 
+        type=['pdf'], 
+        accept_multiple_files=True)
+        
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            st.success(f"File {uploaded_file.name} uploaded successfully!")
+            with open(os.path.join(myDocs, uploaded_file.name), "wb") as f:
+                f.write(uploaded_file.read())
     
-if uploaded_files:
-    for uploaded_file in uploaded_files:
-        st.success(f"File {uploaded_file.name} uploaded successfully!")
-        with open(os.path.join(myDocs, uploaded_file.name), "wb") as f:
-            f.write(uploaded_file.read())
+    st.sidebar.button('Remove All Files', on_click=clear_knowledgebase)
+    st.sidebar.button('Regenerate VectorStore', on_click=regen_vectorstore)
+
+
 
 # Session State
-if str(vsName) not in st.session_state:
-        if len(os.listdir(myDocs)) >= 1:
-            setattr(st.session_state, vsName, get_vectorstore())
-        else:
-            st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
+if "vectorStoreChroma1" not in st.session_state:
+    if len(os.listdir(myDocs)) >= 1:
+        st.session_state.vectorStoreChroma1 = get_vectorstore()
+    else:
+        st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
-if str(msgHistory) not in st.session_state:
-    setattr(st.session_state, msgHistory, [])
+
+if "messages" not in st.session_state:
+    st.session_state.messagesPol = []
 
 # Conversation
-for message in getattr(st.session_state, msgHistory):
+for message in st.session_state.messagesPol:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-    
 # Display new Q&A    
 userInput = st.chat_input("Ask your question...")
 if userInput != None and userInput != "":

@@ -9,15 +9,18 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import os, os.path
+import nthUtility
 from poc_env import *
 
-st.set_page_config(
-    page_title = "PDF Q&A")
-st.image("images/NthLabs.png", width=200)
-st.divider()
-
 # My Variables
-myDocs = "./data/pdfQA"
+webTitle = "PDF Q&A"                # Title on Browser
+myDocs = "./data/pdfQA"             # Location for PDFs
+logo = "images/NthLabs.png"         # 
+msgHistory = "messagesPDF"          # This should be unique for each page
+
+nthUtility.file_structure(myDocs)   # Setup File structure
+
+
 
 # LLMs and Embeddings
 llm = ChatNVIDIA(
@@ -82,7 +85,7 @@ def get_response(userInput):
     retriever_chain = get_context_retriever_chain(st.session_state.vectorStore)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
     response = conversation_rag_chain.invoke({
-        "chat_history": st.session_state.messagesPDF1,
+        "chat_history": getattr(st.session_state, msgHistory),
         "input": userInput
     })
     #return response
@@ -93,21 +96,25 @@ def get_response(userInput):
         responseString += ' Page '
         responseString += str(doc.metadata['page'] + 1)
     return responseString
-    
+
+
 def generate_response(userInput):
     with st.chat_message('human'):
         st.markdown(userInput)
-    st.session_state.messagesPDF1.append({"role": "human", "content": userInput})
+    getattr(st.session_state, msgHistory).append({"role": "human", "content": userInput})
     with st.chat_message('assistant'):
         response = get_response(userInput)
         st.write(response)
-    st.session_state.messagesPDF1.append({"role": "assistant", "content": response})
+    getattr(st.session_state, msgHistory).append({"role": "assistant", "content": response})
 
 #-------------------------------------------------------------
 # Streamlit Stuff
 
+st.set_page_config(page_title=webTitle)
+st.image(logo, width=200)
+st.divider()
+
 # Sidebar
-#st.sidebar.image("images/NthU.png", use_container_width=True)
 st.sidebar.subheader("List of Files in Knowledgebase:")
 for file in os.listdir(myDocs):
     st.sidebar.markdown(file)
@@ -131,14 +138,14 @@ if "vectorStore" not in st.session_state:
         else:
             st.write("It looks like there are no files in your knowledgebase. Please upload some PDFs before proceeding.")
             
-  
-if "messagesPDF1" not in st.session_state:
-    st.session_state.messagesPDF1 = []
+if str(msgHistory) not in st.session_state:
+    setattr(st.session_state, msgHistory, [])
 
 # Conversation
-for message in st.session_state.messagesPDF1:
+for message in getattr(st.session_state, msgHistory):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+    
 # Display new Q&A    
 userInput = st.chat_input("Ask your question...")
 if userInput != None and userInput != "":
