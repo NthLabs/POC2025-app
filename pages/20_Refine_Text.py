@@ -7,7 +7,7 @@ from poc_env import *
 # My Variables
 webTitle = "Refine Text"            # Title on Browser
 logo = "images/NthLabs.png"         # 
-msgHistory = "messagesRefine2"      # This should be unique for each streamlit page
+msgHistory = "messagesRefine1"      # This should be unique for each streamlit page
 
 systemPrompt = 'Please provide three alternate examples of the following text'
 
