@@ -3,13 +3,14 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
+import time
 import nthUtility
 from poc_env import *
 
 # My Variables
 webTitle = "Refine Text"            # Title on Browser
 logFile = "./logs/refinePrompt.log" # Location for Prompt Logs
-perfLog = "./logs/chatPerf.log"     # Location for Perf Log
+perfLog = "./logs/refinePerf.log"   # Location for Perf Log
 logo = "images/NthLabs.png"         # 
 msgHistory = "messagesRefine3"      # This should be unique for each streamlit page
 vsName = "vsPolicy"                 # This should be unique for each Chroma instance
