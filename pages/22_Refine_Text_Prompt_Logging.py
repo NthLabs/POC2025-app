@@ -1,5 +1,6 @@
 import streamlit as st
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_community.callbacks import get_openai_callback
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
