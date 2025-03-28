@@ -3,6 +3,7 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
+import nthUtility
 from poc_env import *
 
 # My Variables
@@ -23,28 +24,26 @@ llm = ChatNVIDIA(
     temperature=0.9)
 
 # LangChain Functions
-def log_prompt(userInput):
-    id = st.context.headers["Sec-Websocket-Key"]
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    with open(logFile, "a") as promptLog:
-        promptLog.write(f"{timestamp},{id},{userInput}\n")
-
 def no_rag(userInput):
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{systemPrompt}{context}"),
         ("user", "{userInput}"),
     ])
     stuffDocumentsChain = create_stuff_documents_chain(llm,prompt)
-
-    response = stuffDocumentsChain.invoke({
-        "systemPrompt": systemPrompt,
-        "userInput": userInput,
-        "context": "",
-        })
+    timeStart = time.perf_counter()
+    with get_openai_callback() as cb:
+        response = stuffDocumentsChain.invoke({
+            "systemPrompt": systemPrompt,
+            "userInput": userInput,
+            "context": "",
+            })
+    timeEnd = time.perf_counter()
+    timeInvoke = timeEnd - timeStart
+    nthUtility.log_prompt_perf(userInput, perfLog, cb, timeInvoke)
     return response
 
 def generate_response(userInput):
-    log_prompt(userInput)
+    nthUtility.log_prompt(userInput, logFile)
     response = no_rag(userInput)
     st.markdown(response)
 
