@@ -23,11 +23,11 @@ llm = ChatNVIDIA(
     temperature=0.9)
 
 # LangChain Functions
-def log_prompt(userInput):
-    id = st.context.headers["Sec-Websocket-Key"]
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    with open(logFile, "a") as promptLog:
-        promptLog.write(f"{timestamp},{id},{userInput}\n")
+# def log_prompt(userInput):
+#     id = st.context.headers["Sec-Websocket-Key"]
+#     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+#     with open(logFile, "a") as promptLog:
+#         promptLog.write(f"{timestamp},{id},{userInput}\n")
 
 def no_rag(userInput):
     prompt = ChatPromptTemplate.from_messages([
@@ -49,7 +49,7 @@ def no_rag(userInput):
     return response
 
 def generate_response(userInput):
-    log_prompt(userInput)
+    nthUtility.log_prompt(userInput, logFile)
     with chatBox.chat_message('human'):
         st.markdown(userInput)
     getattr(st.session_state, msgHistory).append({"role": "human", "content": userInput})

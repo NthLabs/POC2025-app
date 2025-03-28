@@ -9,19 +9,20 @@ from langchain_chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-import os, os.path, time
+import os, os.path
+import time
 import nthUtility
 from poc_env import *
 
 # My Variables
-webTitle = "Policy ChatBot"         # Title on Browser
-myDocs = "./data/policy"            # Location for PDFs
-vsPath = "./catalog/policy"         # Location for VectorStore
-logFile = "./logs/policyPrompt.log" # Location for Prompt Logs
-perfLog = "./logs/policyPerf.log"   # Location for Perf Log
+webTitle = "PDF Q&A"                # Title on Browser
+myDocs = "./data/pdfQA"             # Location for PDFs
+vsPath = "./catalog/pdfQA"          # Location for VectorStore
+logFile = "./logs/PDFPrompt.log"    # Location for Prompt Logs
+perfLog = "./logs/PDFPerf.log"      # Location for Perf Log
 logo = "images/NthLabs.png"         # 
-msgHistory = "messagesPolicy"       # This should be unique for each streamlit page
-vsName = "vsPolicy"                 # This should be unique for each Chroma instance
+msgHistory = "messagesPDF_V"        # This should be unique for each streamlit page
+vsName = "vsPDF_V"                  # This should be unique for each Chroma instance
 
 nthUtility.file_structure(myDocs)   # Setup File structure
 
@@ -48,10 +49,8 @@ embedding = NVIDIAEmbeddings(
 
 # LangChain Functions
 def create_vectorstore():
-    st.sidebar.markdown("Creating Vectorstore")
     loader = PyPDFDirectoryLoader(myDocs)
     documents = loader.load()
-    st.sidebar.markdown(f"{len(documents)} document pages")
 
     # Chunk the data
     text_splitter = RecursiveCharacterTextSplitter(
@@ -60,14 +59,12 @@ def create_vectorstore():
         separators=["\n\n", "\n", ".", ";", ",", " ", ""],
     )
     docChunks = text_splitter.split_documents(documents)
-    st.sidebar.markdown(f"{len(docChunks)} chunks of data")
     
     vectorStore = Chroma.from_documents(
         documents=docChunks,
         embedding=embedding,
         persist_directory=vsPath,
     )
-    st.sidebar.markdown("VectorStore Created")
     setattr(st.session_state, vsName, get_vectorstore())
 
 
@@ -78,12 +75,6 @@ def get_vectorstore():
         embedding_function=embedding,
         persist_directory=vsPath,)
     return vectorStore
-
-
-def regen_vectorstore():
-    vectorStore = get_vectorstore()
-    vectorStore.delete_collection()
-    create_vectorstore()
 
 
 def get_context_retriever_chain(vectorStore):
@@ -112,18 +103,17 @@ def get_conversational_rag_chain(retrieverChain):
 def get_response(userInput):
     retriever_chain = get_context_retriever_chain(getattr(st.session_state, vsName))
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
-    
-    
+
+
     timeStart = time.perf_counter()
     with get_openai_callback() as cb:
         response = conversation_rag_chain.invoke({
-        "chat_history": getattr(st.session_state, msgHistory),
-        "input": userInput
+            "chat_history": getattr(st.session_state, msgHistory),
+            "input": userInput
         })
     timeEnd = time.perf_counter()
     timeInvoke = timeEnd - timeStart
     nthUtility.log_prompt_perf(userInput, perfLog, cb, timeInvoke)
-
 
 
     #return response
@@ -146,15 +136,6 @@ def generate_response(userInput):
         st.write(response)
     getattr(st.session_state, msgHistory).append({"role": "assistant", "content": response})
 
-
-def clear_knowledgebase():
-    for fileName in os.listdir(myDocs):
-        filePath = os.path.join(myDocs, fileName)
-        try:
-            os.unlink(filePath)
-        except:
-            print("cannot delete")
-
 #-------------------------------------------------------------
 # Streamlit Stuff
 
@@ -168,23 +149,16 @@ for file in os.listdir(myDocs):
     st.sidebar.markdown(file)
 st.sidebar.divider()
 
-# Admin Access
-password = st.sidebar.text_input("Password to manage knowledgebase:", type="password")
-if password == adminPass:
-
-    uploaded_files = st.sidebar.file_uploader(
-        "Upload a file to the KnowledgeBase:", 
-        type=['pdf'], 
-        accept_multiple_files=True)
-        
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            st.success(f"File {uploaded_file.name} uploaded successfully!")
-            with open(os.path.join(myDocs, uploaded_file.name), "wb") as f:
-                f.write(uploaded_file.read())
-
-    st.sidebar.button('Remove All Files', on_click=clear_knowledgebase)
-    st.sidebar.button('Regenerate VectorStore', on_click=regen_vectorstore)
+uploaded_files = st.sidebar.file_uploader(
+    "Upload a file to the KnowledgeBase:", 
+    type=['pdf'], 
+    accept_multiple_files=True)
+    
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        st.success(f"File {uploaded_file.name} uploaded successfully!")
+        with open(os.path.join(myDocs, uploaded_file.name), "wb") as f:
+            f.write(uploaded_file.read())
 
 # Session State
 if str(vsName) not in st.session_state:
