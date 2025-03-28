@@ -10,8 +10,8 @@ from poc_env import *
 
 # My Variables
 webTitle = "Private ChatBot"        # Title on Browser
-logFile = "./logs/chatPrompt.log"
-perfLog = "./logs/chatPerf.log"
+logFile = "./logs/chatPrompt.log"   # Location for Prompt Logs
+perfLog = "./logs/chatPerf.log"     # Location for Perf Logs
 logo = "images/NthLabs.png"         #
 msgHistory = "messagesChat2"        # This should be unique for each streamlit page
 

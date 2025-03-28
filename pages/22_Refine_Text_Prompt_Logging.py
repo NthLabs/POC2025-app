@@ -5,23 +5,24 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from datetime import datetime
 from poc_env import *
 
-st.set_page_config(
-    page_title="Refine Text",)
-st.image("images/NthLabs.png", width=200)
-st.divider()
-
 # My Variables
-logFile = "./logs/refinePrompt.log"
+webTitle = "Refine Text"            # Title on Browser
+logFile = "./logs/refinePrompt.log" # Location for Prompt Logs
+perfLog = "./logs/chatPerf.log"     # Location for Perf Log
+logo = "images/NthLabs.png"         # 
+msgHistory = "messagesRefine3"      # This should be unique for each streamlit page
+vsName = "vsPolicy"                 # This should be unique for each Chroma instance
 
+systemPrompt = 'Please provide three alternate examples of the following text'
 
+# LLMs and Embeddings
 llm = ChatNVIDIA(
     base_url=f"http://{llm1Addr}/v1",
     api_key="FAKE",
     model=llm1Model,
     temperature=0.9)
 
-systemPrompt = 'Please provide three alternate examples of the following text'
-
+# LangChain Functions
 def log_prompt(userInput):
     id = st.context.headers["Sec-Websocket-Key"]
     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
@@ -47,6 +48,13 @@ def generate_response(userInput):
     response = no_rag(userInput)
     st.markdown(response)
 
+#-------------------------------------------------------------
+# Streamlit Stuff
+
+st.set_page_config(page_title=webTitle)
+st.image(logo, width=200)
+st.divider()
+
 with st.form('my_form'):
     userInput = st.text_area('Enter text below and get 3 examples of similar text in return:', 
                         placeholder = 'Type or paste your text here',
@@ -55,5 +63,3 @@ with st.form('my_form'):
     if submitted:
         with st.spinner('Calculating the response...'):
             generate_response(userInput)
-
-
