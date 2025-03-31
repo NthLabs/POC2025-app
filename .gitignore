@@ -180,8 +180,9 @@ poc_env.py
 logs
 catalog/**
 !catalog/**/
-data/**
-!data/**/
+# data/**
+# !data/**/
+data/
 !.gitkeep
 !Nth-RRA.pdf 
 
