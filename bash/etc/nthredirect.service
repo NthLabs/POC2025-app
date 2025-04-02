@@ -1,0 +1,9 @@
+[Unit]
+Description=Nth POC Redirect
+After=network.target
+
+[Service]
+ExecStart=/home/pocadmin/poc/POC2025-app/bash/nthredirect.sh
+
+[Install]
+WantedBy=default.target

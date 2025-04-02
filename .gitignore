@@ -178,11 +178,10 @@ prompt.log
 poc_env.py
 
 logs
-catalog/**
-!catalog/**/
-# data/**
-# !data/**/
+catalog/
+certs/
 data/
+
 !.gitkeep
 !Nth-RRA.pdf 
 
